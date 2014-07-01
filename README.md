@@ -1,6 +1,6 @@
 # grunt-htmlTjs
 
-> The best Grunt plugin ever.
+> 编译html文件到underscore库的_.templat模板中
 
 ## Getting Started
 This plugin requires Grunt `0.4.0`
