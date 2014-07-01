@@ -1,0 +1,49 @@
+{
+  "name": "grunt-htmltjs",
+  "description": "The best Grunt plugin ever.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/shehuaqigai/grunt-htmlTjs",
+  "author": "yang chang qiu <570274003@qq.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shehuaqigai/grunt-htmlTjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shehuaqigai/grunt-htmlTjs/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/shehuaqigai/grunt-htmlTjs/blob/master/LICENSE-MIT"
+    }
+  ],
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "^0.9.2",
+    "grunt-contrib-clean": "^0.5.0",
+    "grunt-contrib-nodeunit": "^0.3.3",
+    "grunt": "~0.4.5"
+  },
+  "peerDependencies": {
+    "grunt": "0.4.5"
+  },
+  "keywords": [
+    "gruntplugin"
+  ],
+  "main": "Gruntfile.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.9.2",
+    "grunt-contrib-nodeunit": "^0.3.3",
+    "grunt-contrib-clean": "^0.5.0"
+  },
+  "license": "ISC"
+}
