@@ -7,44 +7,100 @@
  */
 
 'use strict';
-
+var chalk = require('chalk');
+var declare = require('nsdeclare');
 module.exports = function(grunt) {
+    // filename conversion for templates
+    var defaultProcessName = function(filepath) {
+        var name=filepath.split("/").pop();
+        var jstName=name.split(".html")[0];
+        return jstName;
+    };
+    grunt.registerMultiTask('htmltjs', 'html to js template', function() {
+        var lf = grunt.util.linefeed;
+        var options = this.options({
+            namespace: 'JST',
+            templateSettings: {},
+            processContent: function (src) { return src; },
+            separator: lf + lf,
+            root:false,
+            prettify:true
+        });
 
-  // Please see the Grunt documentation for more information regarding task
-  // creation: http://gruntjs.com/creating-tasks
+        // assign filename transformation functions
+        var processName = options.processName || defaultProcessName;
 
-  grunt.registerMultiTask('htmlTjs', 'The best Grunt plugin ever.', function() {
-    // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
-      punctuation: '.',
-      separator: ', '
-    });
+        var nsInfo,rootName,declaration;
+        if (options.namespace !== false) {
+            if(!options.root){
+                rootName='this';
+            }else{
+                rootName=options.root;
+            }
+            declaration = declare(options.namespace,{root:rootName});
 
-    // Iterate over all specified file groups.
-    this.files.forEach(function(f) {
-      // Concat specified files.
-      var src = f.src.filter(function(filepath) {
-        // Warn on and remove invalid source files (if nonull was set).
-        if (!grunt.file.exists(filepath)) {
-          grunt.log.warn('Source file "' + filepath + '" not found.');
-          return false;
-        } else {
-          return true;
         }
-      }).map(function(filepath) {
-        // Read file source.
-        return grunt.file.read(filepath);
-      }).join(grunt.util.normalizelf(options.separator));
+        nsInfo=declaration.split(';');
+        nsInfo.pop();
+        var prefix=nsInfo.pop().split("=")[0];
+        this.files.forEach(function(f) {
+            var output = f.src.filter(function(filepath) {
+                // Warn on and remove invalid source files (if nonull was set).
+                if (!grunt.file.exists(filepath)) {
+                    grunt.log.warn('Source file ' + chalk.cyan(filepath) + ' not found.');
+                    return false;
+                } else {
+                    return true;
+                }
+            })
+                .map(function(filepath) {
+                    var src = options.processContent(grunt.file.read(filepath));
+                    var compiled,filename;
 
-      // Handle options.
-      src += options.punctuation;
+                    try {
+                        compiled = "_.template('"+src+"')";
+                    } catch (e) {
+                        grunt.log.error(e);
+                        grunt.fail.warn('JST ' + chalk.cyan(filepath) + ' failed to compile.');
+                    }
 
-      // Write the destination file.
-      grunt.file.write(f.dest, src);
+                    if (options.prettify) {
+                        compiled = compiled.replace(/(\r)*\n|\t|\<\!\-\-[\s\S]*?\-\-\>/g,"");
+                    }
+                    filename = processName(filepath);
 
-      // Print a success message.
-      grunt.log.writeln('File "' + f.dest + '" created.');
+                    if (options.amd && options.namespace === false) {
+                        return 'return ' + compiled;
+                    }
+                    return prefix+'['+JSON.stringify(filename)+'] = '+compiled+';';
+                });
+
+            if (output.length < 1) {
+                grunt.log.warn('Destination not written because compiled files were empty.');
+            } else {
+                if (options.namespace !== false) {
+                    output.unshift(declaration);
+                    output.unshift("(function(){");
+                    output.push("})();");
+                }
+                if (options.amd) {
+                    if (options.prettify) {
+                        output.forEach(function(line, index) {
+                            output[index] = "  " + line;
+                        });
+                    }
+                    output.unshift("define(function(){");
+                    if (options.namespace !== false) {
+                        // Namespace has not been explicitly set to false; the AMD
+                        // wrapper will return the object containing the template.
+                        output.push("  return " + nsInfo.namespace + ";");
+                    }
+                    output.push("});");
+                }
+                grunt.file.write(f.dest,  output.join(grunt.util.normalizelf(options.separator)));
+                grunt.log.writeln('File ' + chalk.cyan(f.dest) + ' created.');
+            }
+        });
     });
-  });
 
 };
